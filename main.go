@@ -3,12 +3,20 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 )
+
+type Response struct {
+	Name    string
+	Env     []string `json:",omitempty"`
+	Request *RequestInfo
+}
 
 type RequestInfo struct {
 	Method           string
@@ -45,7 +53,18 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 }
 
 func hello(w http.ResponseWriter, req *http.Request) {
-	reqBytes, err := json.Marshal(requestInfoFrom(req))
+	name, _ := os.LookupEnv("NAME")
+	var env []string
+	if readEnv {
+		env = os.Environ()
+	}
+	resp := Response{
+		Name:    name,
+		Env:     env,
+		Request: requestInfoFrom(req),
+	}
+
+	reqBytes, err := json.Marshal(resp)
 	if err != nil {
 		log.Println("Error parsing JSON value, error: " + err.Error())
 	}
@@ -53,8 +72,13 @@ func hello(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	flag.BoolVar(&readEnv, "read-envs", false, "Read environment variables")
+	flag.Parse()
+
 	http.HandleFunc("/", hello)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
 }
+
+var readEnv bool
