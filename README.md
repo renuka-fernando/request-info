@@ -7,6 +7,17 @@ Sample backend service which returns request details to the caller.
 - Set `-read-envs` argument if it is required to out environment variables set in container
 - set `-pretty` argument if it is required to out prettified JSON
 
+Resource Usage
+```yaml
+resources:
+  limits:
+    cpu: "5m"
+    memory: "10Mi"
+  requests:
+    cpu: "2m"
+    memory: "5Mi"
+```
+
 ### 1.1. Basic
 
 Running backend service.
