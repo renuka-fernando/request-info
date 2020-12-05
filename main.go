@@ -55,7 +55,7 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 func hello(w http.ResponseWriter, req *http.Request) {
 	name, _ := os.LookupEnv("NAME")
 	var env []string
-	if readEnv {
+	if readEnvs {
 		env = os.Environ()
 	}
 	resp := Response{
@@ -64,15 +64,26 @@ func hello(w http.ResponseWriter, req *http.Request) {
 		Request: requestInfoFrom(req),
 	}
 
-	reqBytes, err := json.Marshal(resp)
-	if err != nil {
-		log.Println("Error parsing JSON value, error: " + err.Error())
+	var reqBytes []byte
+	var err error
+	if pretty {
+		reqBytes, err = json.MarshalIndent(resp, "", "    ")
+		if err != nil {
+			log.Println("Error parsing JSON value, error: " + err.Error())
+		}
+	} else {
+		reqBytes, err = json.Marshal(resp)
+		if err != nil {
+			log.Println("Error parsing JSON value, error: " + err.Error())
+		}
 	}
+
 	_, _ = fmt.Fprintf(w, string(reqBytes))
 }
 
 func main() {
-	flag.BoolVar(&readEnv, "read-envs", false, "Read environment variables")
+	flag.BoolVar(&readEnvs, "read-envs", false, "Read environment variables")
+	flag.BoolVar(&pretty, "pretty", false, "Prettify output JSON")
 	flag.Parse()
 
 	http.HandleFunc("/", hello)
@@ -81,4 +92,5 @@ func main() {
 	}
 }
 
-var readEnv bool
+var readEnvs bool
+var pretty bool
