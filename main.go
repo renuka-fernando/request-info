@@ -52,7 +52,7 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 	}
 }
 
-func hello(w http.ResponseWriter, req *http.Request) {
+func reqInfo(w http.ResponseWriter, req *http.Request) {
 	name, _ := os.LookupEnv("NAME")
 	var env []string
 	if readEnvs {
@@ -81,16 +81,33 @@ func hello(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintf(w, string(reqBytes))
 }
 
+func empty(w http.ResponseWriter, req *http.Request) {
+	_, _ = fmt.Fprintf(w, "")
+}
+
 func main() {
 	flag.BoolVar(&readEnvs, "read-envs", false, "Read environment variables")
 	flag.BoolVar(&pretty, "pretty", false, "Prettify output JSON")
+	flag.BoolVar(&https, "https", false, "HTTPS server")
+	flag.StringVar(&cert, "cert", "", "Cert file for HTTPS server")
+	flag.StringVar(&key, "key", "", "Key file for HTTPS server")
 	flag.Parse()
 
-	http.HandleFunc("/", hello)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		panic(err)
+	http.HandleFunc("/", reqInfo)
+	http.HandleFunc("/empty-response", empty)
+	if https {
+		if err := http.ListenAndServeTLS(":8080", cert, key, nil); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			panic(err)
+		}
 	}
 }
 
 var readEnvs bool
 var pretty bool
+var https bool
+var cert string
+var key string
