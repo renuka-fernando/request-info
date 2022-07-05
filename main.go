@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -22,6 +23,7 @@ type RequestInfo struct {
 	Method           string
 	Header           http.Header
 	URL              *url.URL
+	Body             string
 	ContentLength    int64
 	TransferEncoding []string
 	Host             string
@@ -31,14 +33,27 @@ type RequestInfo struct {
 	Trailer          http.Header
 	RemoteAddr       string
 	RequestURI       string
+	UserAgent        string
 	TLS              *tls.ConnectionState
 }
 
 func requestInfoFrom(req *http.Request) *RequestInfo {
+	var err error
+	var bodyString string
+	defer req.Body.Close()
+	bodyBytes, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println("[ERROR] Error reading reqeust body: " + err.Error())
+	} else {
+		bodyString = string(bodyBytes)
+	}
+
+	log.Printf("[INFO] %q %q, Host: %q, Content Length: %d, %q, %q", req.Method, req.RequestURI, req.Host, req.ContentLength, req.UserAgent(), req.RemoteAddr)
 	return &RequestInfo{
 		Method:           req.Method,
 		Header:           req.Header,
 		URL:              req.URL,
+		Body:             bodyString,
 		ContentLength:    req.ContentLength,
 		TransferEncoding: req.TransferEncoding,
 		Host:             req.Host,
@@ -48,6 +63,7 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 		Trailer:          req.Trailer,
 		RemoteAddr:       req.RemoteAddr,
 		RequestURI:       req.RequestURI,
+		UserAgent:        req.UserAgent(),
 		TLS:              req.TLS,
 	}
 }
@@ -69,12 +85,12 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 	if pretty {
 		reqBytes, err = json.MarshalIndent(resp, "", "    ")
 		if err != nil {
-			log.Println("Error parsing JSON value, error: " + err.Error())
+			log.Println("[ERROR] Error parsing JSON value, error: " + err.Error())
 		}
 	} else {
 		reqBytes, err = json.Marshal(resp)
 		if err != nil {
-			log.Println("Error parsing JSON value, error: " + err.Error())
+			log.Println("[ERROR] Error parsing JSON value, error: " + err.Error())
 		}
 	}
 
@@ -95,11 +111,16 @@ func main() {
 
 	http.HandleFunc("/", reqInfo)
 	http.HandleFunc("/empty-response", empty)
+	log.Println("[INFO] Starting echo service...")
+	log.Println("[INFO] Invoke resource '/' to echo response")
+	log.Println("[INFO] Invoke '/empty-response' to return empty response")
 	if https {
-		if err := http.ListenAndServeTLS(":8080", cert, key, nil); err != nil {
+		log.Println("[INFO] Server listening at :8443")
+		if err := http.ListenAndServeTLS(":8443", cert, key, nil); err != nil {
 			panic(err)
 		}
 	} else {
+		log.Println("[INFO] Server listening at :8080")
 		if err := http.ListenAndServe(":8080", nil); err != nil {
 			panic(err)
 		}
