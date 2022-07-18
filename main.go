@@ -49,6 +49,13 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 	}
 
 	log.Printf("[INFO] %q %q, Host: %q, Content Length: %d, %q, %q", req.Method, req.RequestURI, req.Host, req.ContentLength, req.UserAgent(), req.RemoteAddr)
+	if logHeaders {
+		log.Printf("[INFO] Headers: %v", req.Header)
+	}
+	if logBody {
+		log.Printf("[INFO] Body: %v", bodyString)
+	}
+
 	return &RequestInfo{
 		Method:           req.Method,
 		Header:           req.Header,
@@ -104,7 +111,10 @@ func empty(w http.ResponseWriter, req *http.Request) {
 func main() {
 	flag.BoolVar(&readEnvs, "read-envs", false, "Read environment variables")
 	flag.BoolVar(&pretty, "pretty", false, "Prettify output JSON")
+	flag.BoolVar(&logHeaders, "logH", false, "Log Headers")
+	flag.BoolVar(&logBody, "logB", false, "Log Headers")
 	flag.BoolVar(&https, "https", false, "HTTPS server")
+	flag.StringVar(&addr, "addr", "", "Address to bind the server")
 	flag.StringVar(&cert, "cert", "", "Cert file for HTTPS server")
 	flag.StringVar(&key, "key", "", "Key file for HTTPS server")
 	flag.Parse()
@@ -114,14 +124,22 @@ func main() {
 	log.Println("[INFO] Starting echo service...")
 	log.Println("[INFO] Invoke resource '/' to echo response")
 	log.Println("[INFO] Invoke '/empty-response' to return empty response")
+
+	if addr == "" {
+		if https {
+			addr = ":8443"
+		} else {
+			addr = ":8080"
+		}
+	}
+	log.Println("[INFO] Server listening at " + addr)
+
 	if https {
-		log.Println("[INFO] Server listening at :8443")
-		if err := http.ListenAndServeTLS(":8443", cert, key, nil); err != nil {
+		if err := http.ListenAndServeTLS(addr, cert, key, nil); err != nil {
 			panic(err)
 		}
 	} else {
-		log.Println("[INFO] Server listening at :8080")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
+		if err := http.ListenAndServe(addr, nil); err != nil {
 			panic(err)
 		}
 	}
@@ -129,6 +147,9 @@ func main() {
 
 var readEnvs bool
 var pretty bool
+var logHeaders bool
+var logBody bool
 var https bool
+var addr string
 var cert string
 var key string
