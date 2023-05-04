@@ -4,12 +4,14 @@ Sample backend service which returns request details to the caller.
 ## 1. Test Sample Service
 
 ```sh
-docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v1 -addr :8080 -pretty -logH -logB
+docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v1 -addr :8080 -pretty -logH -logB -statusCode 200 -responseTime 1000
 ```
 
 - Set `NAME` environment variable to set the name of the service, which will out as a response
 - Set `-read-envs` argument if it is required to out environment variables set in container
 - set `-pretty` argument if it is required to out prettified JSON
+- set `-responseTime` argument to delay response for a given time in milliseconds
+- set `-statusCode` argument to set status code of the response
 
 Resource Usage
 ```yaml

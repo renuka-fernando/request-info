@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 type Response struct {
@@ -47,7 +48,7 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 	} else {
 		bodyString = string(bodyBytes)
 	}
-
+	os.WriteFile("last_response", bodyBytes, 0644)
 	log.Printf("[INFO] %q %q, Host: %q, Content Length: %d, %q, %q", req.Method, req.RequestURI, req.Host, req.ContentLength, req.UserAgent(), req.RemoteAddr)
 	if logHeaders {
 		log.Printf("[INFO] Headers: %v", req.Header)
@@ -101,6 +102,8 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	time.Sleep(time.Duration(responseTime) * time.Millisecond)
+	w.WriteHeader(statusCode)
 	_, _ = fmt.Fprintf(w, string(reqBytes))
 }
 
@@ -117,6 +120,8 @@ func main() {
 	flag.StringVar(&addr, "addr", "", "Address to bind the server")
 	flag.StringVar(&cert, "cert", "", "Cert file for HTTPS server")
 	flag.StringVar(&key, "key", "", "Key file for HTTPS server")
+	flag.IntVar(&responseTime, "time", 0, "Time to wait (ms) before responding to request")
+	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
 	flag.Parse()
 
 	http.HandleFunc("/", reqInfo)
@@ -153,3 +158,5 @@ var https bool
 var addr string
 var cert string
 var key string
+var responseTime int
+var statusCode int
