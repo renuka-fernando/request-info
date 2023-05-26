@@ -4,7 +4,7 @@ Sample backend service which returns request details to the caller.
 ## 1. Test Sample Service
 
 ```sh
-docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v1 -addr :8080 -pretty -logH -logB -statusCode 200 -responseTime 1000
+docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -responseTime 1000
 ```
 
 - Set `NAME` environment variable to set the name of the service, which will out as a response
@@ -24,11 +24,30 @@ resources:
     memory: "5Mi"
 ```
 
+Override statusCode and responseTime with the following request headers.
+- `Set-Response-Status-Code`
+- `Set-Response-Time-Ms`
+
+Get request info:
+```sh
+curl http://localhost:8080/hello/world -H "Set-Response-Status-Code: 201" -H "Set-Response-Time-Ms: 2000" -i
+```
+
+Empty response:
+```sh
+curl http://localhost:8080/empty -H "Set-Response-Status-Code: 500" -H "Set-Response-Time-Ms: 1000" -i
+```
+
+Echo response:
+```sh
+curl http://localhost:8080/echo -d 'hello world!' -H "Set-Response-Status-Code: 401" -i
+```
+
 ### 1.1. Basic
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v1
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2
 ```
 
 Sending request to backend service.
@@ -49,7 +68,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v1 -read-envs
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2 -read-envs
 ```
 
 Sending request to backend service.
@@ -70,7 +89,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v1 -pretty
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2 -pretty
 ```
 
 Sending request to backend service.

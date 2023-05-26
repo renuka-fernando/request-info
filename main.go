@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -38,13 +39,16 @@ type RequestInfo struct {
 	TLS              *tls.ConnectionState
 }
 
-func requestInfoFrom(req *http.Request) *RequestInfo {
+var serviceName string
+var env []string
+
+func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 	var err error
 	var bodyString string
 	defer req.Body.Close()
 	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
-		log.Println("[ERROR] Error reading reqeust body: " + err.Error())
+		log.Println("[ERROR] Error reading request body: " + err.Error())
 	} else {
 		bodyString = string(bodyBytes)
 	}
@@ -57,11 +61,37 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 		log.Printf("[INFO] Body: %v", bodyString)
 	}
 
+	respTime := responseTime
+	respTimeStr := req.Header.Get("Set-Response-Time-Ms")
+	if respTimeStr != "" {
+		respTime, err = strconv.Atoi(respTimeStr)
+		if err != nil {
+			log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
+		}
+	}
+
+	code := statusCode
+	codeStr := req.Header.Get("Set-Response-Status-Code")
+	if codeStr != "" {
+		code, err = strconv.Atoi(codeStr)
+		if err != nil {
+			log.Println("[ERROR] Error parsing Set-Response-Status-Code value, error: " + err.Error())
+		}
+	}
+
+	time.Sleep(time.Duration(respTime) * time.Millisecond)
+	w.WriteHeader(code)
+	return &bodyString
+}
+
+func requestInfoFrom(w http.ResponseWriter, req *http.Request) *RequestInfo {
+	bodyString := handleRequest(w, req)
+
 	return &RequestInfo{
 		Method:           req.Method,
 		Header:           req.Header,
 		URL:              req.URL,
-		Body:             bodyString,
+		Body:             *bodyString,
 		ContentLength:    req.ContentLength,
 		TransferEncoding: req.TransferEncoding,
 		Host:             req.Host,
@@ -77,15 +107,10 @@ func requestInfoFrom(req *http.Request) *RequestInfo {
 }
 
 func reqInfo(w http.ResponseWriter, req *http.Request) {
-	name, _ := os.LookupEnv("NAME")
-	var env []string
-	if readEnvs {
-		env = os.Environ()
-	}
 	resp := Response{
-		Name:    name,
+		Name:    serviceName,
 		Env:     env,
-		Request: requestInfoFrom(req),
+		Request: requestInfoFrom(w, req),
 	}
 
 	var reqBytes []byte
@@ -102,13 +127,17 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	time.Sleep(time.Duration(responseTime) * time.Millisecond)
-	w.WriteHeader(statusCode)
-	_, _ = fmt.Fprintf(w, string(reqBytes))
+	_, _ = fmt.Fprintln(w, string(reqBytes))
 }
 
 func empty(w http.ResponseWriter, req *http.Request) {
-	_, _ = fmt.Fprintf(w, "")
+	_ = handleRequest(w, req)
+	_, _ = fmt.Fprintln(w, "")
+}
+
+func echo(w http.ResponseWriter, req *http.Request) {
+	bodyString := handleRequest(w, req)
+	_, _ = fmt.Fprintln(w, *bodyString)
 }
 
 func main() {
@@ -124,11 +153,18 @@ func main() {
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
 	flag.Parse()
 
+	serviceName, _ = os.LookupEnv("NAME")
+	if readEnvs {
+		env = os.Environ()
+	}
+
 	http.HandleFunc("/", reqInfo)
-	http.HandleFunc("/empty-response", empty)
+	http.HandleFunc("/empty", empty)
+	http.HandleFunc("/echo", echo)
 	log.Println("[INFO] Starting echo service...")
-	log.Println("[INFO] Invoke resource '/' to echo response")
-	log.Println("[INFO] Invoke '/empty-response' to return empty response")
+	log.Println("[INFO] Invoke resource '/' to get request info in response")
+	log.Println("[INFO] Invoke resource '/echo' to echo response")
+	log.Println("[INFO] Invoke '/empty' to return empty response")
 
 	if addr == "" {
 		if https {
