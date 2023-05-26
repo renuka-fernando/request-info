@@ -30,7 +30,7 @@ Override statusCode and responseTime with the following request headers.
 
 Get request info:
 ```sh
-curl http://localhost:8080/hello/world -H "Set-Response-Status-Code: 201" -H "Set-Response-Time-Ms: 2000" -i
+curl http://localhost:8080/hello/world -H "Set-Response-Status-Code: 201" -H "Set-Response-Time-Ms: 2000:6000" -i
 ```
 
 Empty response:

@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -64,9 +66,24 @@ func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 	respTime := responseTime
 	respTimeStr := req.Header.Get("Set-Response-Time-Ms")
 	if respTimeStr != "" {
-		respTime, err = strconv.Atoi(respTimeStr)
-		if err != nil {
-			log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
+		// handle random time if ":" is present
+		if strings.Contains(respTimeStr, ":") {
+			randTime := strings.Split(respTimeStr, ":")
+			randTimeMin, err := strconv.Atoi(randTime[0])
+			if err != nil {
+				log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
+			}
+			randTimeMax, err := strconv.Atoi(randTime[1])
+			if err != nil {
+				log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
+			}
+			rand.Seed(time.Now().UnixNano())
+			respTime = rand.Intn(randTimeMax-randTimeMin) + randTimeMin
+		} else {
+			respTime, err = strconv.Atoi(respTimeStr)
+			if err != nil {
+				log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
+			}
 		}
 	}
 
