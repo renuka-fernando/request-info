@@ -41,6 +41,8 @@ type RequestInfo struct {
 	TLS              *tls.ConnectionState
 }
 
+const delayMsSeparator = "-"
+
 var serviceName string
 var env []string
 
@@ -63,12 +65,12 @@ func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 		log.Printf("[INFO] Body: %v", bodyString)
 	}
 
-	respTime := responseTime
-	respTimeStr := req.Header.Get("Set-Response-Time-Ms")
+	respTime := delayMs
+	respTimeStr := req.URL.Query().Get("delayMs")
 	if respTimeStr != "" {
-		// handle random time if ":" is present
-		if strings.Contains(respTimeStr, ":") {
-			randTime := strings.Split(respTimeStr, ":")
+		// handle random time if "-" is present
+		if strings.Contains(respTimeStr, delayMsSeparator) {
+			randTime := strings.Split(respTimeStr, delayMsSeparator)
 			randTimeMin, err := strconv.Atoi(randTime[0])
 			if err != nil {
 				log.Println("[ERROR] Error parsing Set-Response-Time-Ms value, error: " + err.Error())
@@ -88,7 +90,7 @@ func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 	}
 
 	code := statusCode
-	codeStr := req.Header.Get("Set-Response-Status-Code")
+	codeStr := req.URL.Query().Get("statusCode")
 	if codeStr != "" {
 		code, err = strconv.Atoi(codeStr)
 		if err != nil {
@@ -132,7 +134,15 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 
 	var reqBytes []byte
 	var err error
-	if pretty {
+	doPretty := pretty
+	prettyStr := req.URL.Query().Get("pretty")
+	if prettyStr != "" {
+		doPretty, err = strconv.ParseBool(prettyStr)
+		if err != nil {
+			log.Println("[ERROR] Error parsing pretty value, error: " + err.Error())
+		}
+	}
+	if doPretty {
 		reqBytes, err = json.MarshalIndent(resp, "", "    ")
 		if err != nil {
 			log.Println("[ERROR] Error parsing JSON value, error: " + err.Error())
@@ -149,12 +159,29 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 
 func empty(w http.ResponseWriter, req *http.Request) {
 	_ = handleRequest(w, req)
-	_, _ = fmt.Fprintln(w, "")
+	_, _ = fmt.Fprint(w, "")
 }
 
 func echo(w http.ResponseWriter, req *http.Request) {
 	bodyString := handleRequest(w, req)
 	_, _ = fmt.Fprintln(w, *bodyString)
+}
+
+func enableCORS(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// If it's a preflight request, send the necessary headers and stop the request chain
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		// Call the actual handler
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -166,7 +193,7 @@ func main() {
 	flag.StringVar(&addr, "addr", "", "Address to bind the server")
 	flag.StringVar(&cert, "cert", "", "Cert file for HTTPS server")
 	flag.StringVar(&key, "key", "", "Key file for HTTPS server")
-	flag.IntVar(&responseTime, "time", 0, "Time to wait (ms) before responding to request")
+	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
 	flag.Parse()
 
@@ -175,9 +202,17 @@ func main() {
 		env = os.Environ()
 	}
 
-	http.HandleFunc("/", reqInfo)
-	http.HandleFunc("/empty", empty)
-	http.HandleFunc("/echo", echo)
+	// Create a new HTTP server
+	server := http.NewServeMux()
+
+	// Set up a handler for the desired route
+	server.HandleFunc("/", reqInfo)
+	server.HandleFunc("/empty", empty)
+	server.HandleFunc("/echo", echo)
+
+	// Enable CORS middleware
+	corsHandler := enableCORS(server)
+
 	log.Println("[INFO] Starting echo service...")
 	log.Println("[INFO] Invoke resource '/' to get request info in response")
 	log.Println("[INFO] Invoke resource '/echo' to echo response")
@@ -193,11 +228,11 @@ func main() {
 	log.Println("[INFO] Server listening at " + addr)
 
 	if https {
-		if err := http.ListenAndServeTLS(addr, cert, key, nil); err != nil {
+		if err := http.ListenAndServeTLS(addr, cert, key, corsHandler); err != nil {
 			panic(err)
 		}
 	} else {
-		if err := http.ListenAndServe(addr, nil); err != nil {
+		if err := http.ListenAndServe(addr, corsHandler); err != nil {
 			panic(err)
 		}
 	}
@@ -211,5 +246,5 @@ var https bool
 var addr string
 var cert string
 var key string
-var responseTime int
+var delayMs int
 var statusCode int

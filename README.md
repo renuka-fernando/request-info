@@ -1,16 +1,19 @@
 # Request Info - Sample Backend Service
 Sample backend service which returns request details to the caller.
 
+Open API Specification: [request_info_openapi.yaml](request_info_openapi.yaml)
+https://app.swaggerhub.com/apis/renuka-fernando/request-info/2.0.0
+
 ## 1. Test Sample Service
 
 ```sh
-docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -responseTime 1000
+docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -delayMs 1000
 ```
 
 - Set `NAME` environment variable to set the name of the service, which will out as a response
 - Set `-read-envs` argument if it is required to out environment variables set in container
 - set `-pretty` argument if it is required to out prettified JSON
-- set `-responseTime` argument to delay response for a given time in milliseconds
+- set `-delayMs` argument to delay response for a given time in milliseconds
 - set `-statusCode` argument to set status code of the response
 
 Resource Usage
@@ -24,23 +27,23 @@ resources:
     memory: "5Mi"
 ```
 
-Override statusCode and responseTime with the following request headers.
-- `Set-Response-Status-Code`
-- `Set-Response-Time-Ms`
+Override statusCode and responseTime with the following query parameters.
+- `statusCode` - HTTP status code to respond
+- `delayMs` - Time to wait (ms) before responding to request
 
 Get request info:
 ```sh
-curl http://localhost:8080/hello/world -H "Set-Response-Status-Code: 201" -H "Set-Response-Time-Ms: 2000:6000" -i
+curl 'http://localhost:8080/hello/world?delayMs=2000:5000&statusCode=201&pretty=true' -i
 ```
 
 Empty response:
 ```sh
-curl http://localhost:8080/empty -H "Set-Response-Status-Code: 500" -H "Set-Response-Time-Ms: 1000" -i
+curl 'http://localhost:8080/empty?delayMs=1000&statusCode=500' -i
 ```
 
 Echo response:
 ```sh
-curl http://localhost:8080/echo -d 'hello world!' -H "Set-Response-Status-Code: 401" -i
+curl 'http://localhost:8080/echo?statusCode=403' -d 'hello world!' -i
 ```
 
 ### 1.1. Basic
@@ -143,3 +146,12 @@ docker rm -f service-A
 
 ## 2. Build From Source
 run `./build-docker.sh`
+
+## 3. Deploy in Choreo
+
+1. Create a Service component in Choreo.
+2. Give name and description to the service.
+3. Select this as the GitHub account. Select the repository as `request-info` and branch as `main`.
+4. Set build preset as `Dockerfile`.
+5. Set Dockerfile path as `DockerfileFullBuild`.
+6. Set Docker context as `/`.
