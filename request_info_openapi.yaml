@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Request Info
+  version: 2.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local server
+paths:
+  /:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      responses:
+        "200":
+          description: ""
+    post:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    put:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      responses:
+        "200":
+          description: ""
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+  /pet:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      responses:
+        "200":
+          description: ""
+    post:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    put:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      responses:
+        "200":
+          description: ""
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - $ref: "#/components/parameters/prettyQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+  /empty:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      responses:
+        "200":
+          description: ""
+    post:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    put:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      responses:
+        "200":
+          description: ""
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+  /echo:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      responses:
+        "200":
+          description: ""
+    post:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    put:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: ""
+components:
+  parameters:
+    delayMsQueryParam:
+      name: delayMs
+      in: query
+      description: |
+        Time to wait (ms) before responding to request.
+        Examples: 1000, 1000-5000
+      schema:
+        type: string
+        # patter should be a <number> or <numberMin>-<numberMax>
+        pattern: "^[0-9]+(-[0-9]+)?$"
+    statusCodeQueryParam:
+      name: statusCode
+      in: query
+      description: HTTP status code to respond
+      schema:
+        type: integer
+        format: int32
+    prettyQueryParam:
+      name: pretty
+      in: query
+      description: |
+        Pretty print JSON response.
+        Examples: true, false
+      schema:
+        type: boolean
+        default: false
