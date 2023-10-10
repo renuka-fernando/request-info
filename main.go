@@ -14,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -45,6 +46,10 @@ const delayMsSeparator = "-"
 
 var serviceName string
 var env []string
+
+var muResp = &sync.RWMutex{}
+var isResponseDataSet bool = false
+var responseData string = ""
 
 func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 	var err error
@@ -157,6 +162,36 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintln(w, string(reqBytes))
 }
 
+func reqInfoSetPayloadHandler(w http.ResponseWriter, req *http.Request) {
+	reqPayload := handleRequest(w, req)
+
+	if req.Method == "POST" && reqPayload != nil {
+		log.Println("[INFO] Setting response data to: " + *reqPayload)
+
+		muResp.Lock()
+		isResponseDataSet = true
+		responseData = *reqPayload
+		muResp.Unlock()
+	} else if req.Method == "DELETE" {
+		muResp.Lock()
+		isResponseDataSet = false
+		muResp.Unlock()
+	}
+
+}
+
+func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		muResp.RLock()
+		defer muResp.RUnlock()
+		if isResponseDataSet {
+			_, _ = fmt.Fprintln(w, responseData)
+		} else {
+			handler(w, req) // call the original handler
+		}
+	}
+}
+
 func empty(w http.ResponseWriter, req *http.Request) {
 	_ = handleRequest(w, req)
 	_, _ = fmt.Fprint(w, "")
@@ -206,9 +241,10 @@ func main() {
 	server := http.NewServeMux()
 
 	// Set up a handler for the desired route
-	server.HandleFunc("/empty", empty)
-	server.HandleFunc("/echo", echo)
-	server.HandleFunc("/", reqInfo)
+	server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
+	server.HandleFunc("/empty", setResponseHandler(empty))
+	server.HandleFunc("/echo", setResponseHandler(echo))
+	server.HandleFunc("/", setResponseHandler(reqInfo))
 
 	// Enable CORS middleware
 	corsHandler := enableCORS(server)
