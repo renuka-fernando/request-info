@@ -46,6 +46,16 @@ Echo response:
 curl 'http://localhost:8080/echo?statusCode=403' -d 'hello world!' -i
 ```
 
+Set response data:
+
+```sh
+curl localhost:8080/req-info/response -d 'hello world' -i
+curl localhost:8080/foo -i
+
+curl localhost:8080/req-info/response -X DELETE
+```
+
+
 ### 1.1. Basic
 
 Running backend service.
