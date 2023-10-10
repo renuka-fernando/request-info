@@ -131,6 +131,8 @@ func requestInfoFrom(w http.ResponseWriter, req *http.Request) *RequestInfo {
 }
 
 func reqInfo(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	resp := Response{
 		Name:    serviceName,
 		Env:     env,
@@ -163,6 +165,7 @@ func reqInfo(w http.ResponseWriter, req *http.Request) {
 }
 
 func reqInfoSetPayloadHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	reqPayload := handleRequest(w, req)
 
 	if req.Method == "POST" && reqPayload != nil {
@@ -172,10 +175,12 @@ func reqInfoSetPayloadHandler(w http.ResponseWriter, req *http.Request) {
 		isResponseDataSet = true
 		responseData = *reqPayload
 		muResp.Unlock()
+		fmt.Fprintln(w, `{"message":"Response data is set successfully"}`)
 	} else if req.Method == "DELETE" {
 		muResp.Lock()
 		isResponseDataSet = false
 		muResp.Unlock()
+		fmt.Fprintln(w, `{"message":"Response data is removed successfully"}`)
 	}
 
 }
