@@ -270,10 +270,16 @@ func main() {
 	log.Println("[INFO] Server listening at " + addr)
 
 	if https {
+		log.Print("Sleeping for 3000 seconds")
+		time.Sleep(3000 * time.Second)
+		log.Print("Sleeping over, starting HTTPS server")
 		if err := http.ListenAndServeTLS(addr, cert, key, corsHandler); err != nil {
 			panic(err)
 		}
 	} else {
+		log.Print("Sleeping for 3000 seconds")
+		time.Sleep(3000 * time.Second)
+		log.Print("Sleeping over, starting HTTP server")
 		if err := http.ListenAndServe(addr, corsHandler); err != nil {
 			panic(err)
 		}
