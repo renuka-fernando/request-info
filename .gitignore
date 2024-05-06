@@ -20,3 +20,7 @@ request-info-*
 
 # IDEs
 .idea/
+
+
+# Certs
+certs/

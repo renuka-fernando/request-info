@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -230,10 +231,12 @@ func main() {
 	flag.BoolVar(&pretty, "pretty", false, "Prettify output JSON")
 	flag.BoolVar(&logHeaders, "logH", false, "Log Headers")
 	flag.BoolVar(&logBody, "logB", false, "Log Headers")
-	flag.BoolVar(&https, "https", false, "HTTPS server")
+	flag.BoolVar(&https, "https", false, "HTTPS server") // Set to true for mTLS
+	flag.BoolVar(&mtls, "mtls", false, "Enable mTLS")    // New flag to enable/disable mTLS
 	flag.StringVar(&addr, "addr", "", "Address to bind the server")
-	flag.StringVar(&cert, "cert", "", "Cert file for HTTPS server")
-	flag.StringVar(&key, "key", "", "Key file for HTTPS server")
+	flag.StringVar(&cert, "cert", "server.crt", "Cert file for HTTPS server")
+	flag.StringVar(&key, "key", "server.key", "Key file for HTTPS server")
+	flag.StringVar(&clientCA, "ca", "ca.crt", "CA certificate file for client verification")
 	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
 	flag.Parse()
@@ -261,21 +264,43 @@ func main() {
 	log.Println("[INFO] Invoke '/empty' to return empty response")
 
 	if addr == "" {
-		if https {
-			addr = ":8443"
-		} else {
-			addr = ":8080"
-		}
+		addr = ":8443" // Default address for HTTPS server
 	}
 	log.Println("[INFO] Server listening at " + addr)
 
 	if https {
-		if err := http.ListenAndServeTLS(addr, cert, key, corsHandler); err != nil {
-			panic(err)
+		tlsConfig := &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: make([]tls.Certificate, 1),
+		}
+		tlsConfig.Certificates[0], _ = tls.LoadX509KeyPair(cert, key)
+
+		// Load CA certificate for client verification
+		caCert, _ := os.ReadFile(clientCA)
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		if mtls {
+			tlsConfig.ClientCAs = caCertPool
+			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+		} else {
+			tlsConfig.ClientCAs = nil
+			tlsConfig.ClientAuth = tls.NoClientCert
+		}
+
+		serverTLS := &http.Server{
+			Addr:      addr,
+			Handler:   corsHandler,
+			TLSConfig: tlsConfig,
+		}
+
+		// Start HTTPS server
+		if err := serverTLS.ListenAndServeTLS("", ""); err != nil {
+			log.Fatal(err)
 		}
 	} else {
 		if err := http.ListenAndServe(addr, corsHandler); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}
 }
@@ -285,8 +310,10 @@ var pretty bool
 var logHeaders bool
 var logBody bool
 var https bool
+var mtls bool
 var addr string
 var cert string
 var key string
+var clientCA string
 var delayMs int
 var statusCode int

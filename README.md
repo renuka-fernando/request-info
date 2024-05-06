@@ -154,6 +154,50 @@ Remove running service
 docker rm -f service-A
 ```
 
+### 1.4. HTTP Service
+
+Generate Certs
+
+```sh
+./gen-certs.sh
+```
+
+Running backend service.
+```sh
+go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt
+```
+
+Test the service
+```sh
+curl https://localhost:8443/foo \
+    --cacert certs/server.crt \
+    -v
+```
+
+### 1.5. mTLS Service
+
+Generate Certs
+
+```sh
+./gen-certs.sh
+```
+
+Running backend service.
+```sh
+go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt -mtls -ca ./certs/client.crt
+```
+
+Test the service
+
+```sh
+curl https://localhost:8443/foo \
+    --cacert certs/server.crt \
+    --key certs/client.key \
+    --cert certs/client.crt \
+    -v
+```
+
+
 ## 2. Build From Source
 run `./build-docker.sh`
 
