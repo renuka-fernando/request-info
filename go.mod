@@ -1,3 +1,3 @@
-module cakebakery.io/request-info
+module github.com/renuka-fernando/request-info
 
 go 1.15

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE_NAME=cakebakery/request-info:v2
+IMAGE_NAME=renukafernando/request-info:v2
 
 # install docker buildx plugin
 

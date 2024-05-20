@@ -7,7 +7,7 @@ https://app.swaggerhub.com/apis-docs/renuka-fernando/request-info/2.0.0
 ## 1. Test Sample Service
 
 ```sh
-docker run --rm -p 8080:8080 -e "NAME=Service A" cakebakery/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -delayMs 1000
+docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -delayMs 1000
 ```
 
 - Set `NAME` environment variable to set the name of the service, which will out as a response
@@ -60,7 +60,7 @@ curl localhost:8080/req-info/response -X DELETE
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2
 ```
 
 Sending request to backend service.
@@ -81,7 +81,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2 -read-envs
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2 -read-envs
 ```
 
 Sending request to backend service.
@@ -102,7 +102,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A cakebakery/request-info:v2 -pretty
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2 -pretty
 ```
 
 Sending request to backend service.
