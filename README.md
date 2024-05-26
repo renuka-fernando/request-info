@@ -7,7 +7,7 @@ https://app.swaggerhub.com/apis-docs/renuka-fernando/request-info/2.0.0
 ## 1. Test Sample Service
 
 ```sh
-docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:v2 -addr :8080 -pretty -logH -logB -statusCode 200 -delayMs 1000
+docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:latest -addr :8080 -pretty -logH -logB -statusCode 200 -delayMs 1000
 ```
 
 - Set `NAME` environment variable to set the name of the service, which will out as a response
@@ -60,7 +60,7 @@ curl localhost:8080/req-info/response -X DELETE
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:latest
 ```
 
 Sending request to backend service.
@@ -81,7 +81,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2 -read-envs
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:latest -read-envs
 ```
 
 Sending request to backend service.
@@ -102,7 +102,7 @@ docker rm -f service-A
 
 Running backend service.
 ```sh
-docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:v2 -pretty
+docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/request-info:latest -pretty
 ```
 
 Sending request to backend service.
@@ -163,6 +163,25 @@ Generate Certs
 ```
 
 Running backend service.
+
+#### 1.5.1. Using Docker Image
+
+```sh
+docker run --rm -p 8443:8443 -e "NAME=Service A" -v ./certs:/certs  renukafernando/request-info:latest -pretty -logH -logB -addr :8443 -https -key /certs/server.key -cert /certs/server.crt
+```
+
+Test the service
+
+```sh
+curl https://localhost:8443/foo \
+    --cacert certs/server.crt \
+    --key certs/client.key \
+    --cert certs/client.crt \
+    -v
+```
+
+#### 1.5.2. Using Go Source Code
+
 ```sh
 go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt
 ```
@@ -183,6 +202,25 @@ Generate Certs
 ```
 
 Running backend service.
+
+#### 1.5.1. Using Docker Image
+
+```sh
+docker run --rm -p 8443:8443 -e "NAME=Service A" -v ./certs:/certs  renukafernando/request-info:latest -pretty -logH -logB -addr :8443 -https -key /certs/server.key -cert /certs/server.crt -mtls -ca /certs/client.crt
+```
+
+Test the service
+
+```sh
+curl https://localhost:8443/foo \
+    --cacert certs/server.crt \
+    --key certs/client.key \
+    --cert certs/client.crt \
+    -v
+```
+
+#### 1.5.2. Using Go Source Code
+
 ```sh
 go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt -mtls -ca ./certs/client.crt
 ```

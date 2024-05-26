@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   request-info:
-    image: renukafernando/request-info:v2
+    image: renukafernando/request-info:latest
     deploy:
       replicas: 1
       resources:

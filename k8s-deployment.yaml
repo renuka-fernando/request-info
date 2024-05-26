@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: request-info
-        image: renukafernando/request-info:v2
+        image: renukafernando/request-info:latest
         ports:
         - containerPort: 8080
         resources:

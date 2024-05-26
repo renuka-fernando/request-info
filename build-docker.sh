@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE_NAME=renukafernando/request-info:v2
+IMAGE_NAME=renukafernando/request-info:latest
 
 # install docker buildx plugin
 
