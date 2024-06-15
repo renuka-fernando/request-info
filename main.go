@@ -264,7 +264,11 @@ func main() {
 	log.Println("[INFO] Invoke '/empty' to return empty response")
 
 	if addr == "" {
-		addr = ":8443" // Default address for HTTPS server
+		if https {
+			addr = ":8443"
+		} else {
+			addr = ":8080"
+		}
 	}
 	log.Println("[INFO] Server listening at " + addr)
 
