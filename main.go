@@ -188,7 +188,6 @@ func reqInfoSetPayloadHandler(w http.ResponseWriter, req *http.Request) {
 
 func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		_ = handleRequest(w, req)
 		muResp.RLock()
 		defer muResp.RUnlock()
 		if isResponseDataSet {
