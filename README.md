@@ -237,7 +237,12 @@ curl https://localhost:8443/foo \
 
 
 ## 2. Build From Source
-run `./build-docker.sh`
+
+Execute the following command to build the Docker image.
+
+```sh
+./build-docker.sh
+```
 
 ## 3. Deploy in Choreo
 
