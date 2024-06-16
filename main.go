@@ -237,7 +237,7 @@ func main() {
 	flag.StringVar(&key, "key", "server.key", "Key file for HTTPS server")
 	flag.StringVar(&clientCA, "ca", "ca.crt", "CA certificate file for client verification")
 	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
-	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
+	flag.IntVar(&statusCode, "statusCode", 200, "HTTP status code to respond")
 	flag.Parse()
 
 	serviceName, _ = os.LookupEnv("NAME")
