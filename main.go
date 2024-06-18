@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -13,9 +14,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -250,6 +253,10 @@ func main() {
 		env = os.Environ()
 	}
 
+	// Channel to listen for OS signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
 	// Create a new HTTP server
 	server := http.NewServeMux()
 
@@ -263,7 +270,7 @@ func main() {
 	// Enable CORS middleware
 	corsHandler := enableCORS(server)
 
-	log.Println("[INFO] Starting echo service...")
+	log.Println("[INFO] Starting server...")
 	log.Println("[INFO] Invoke resource '/' to get request info in response")
 	log.Println("[INFO] Invoke resource '/echo' to echo response")
 	log.Println("[INFO] Invoke '/empty' to return empty response")
@@ -275,7 +282,11 @@ func main() {
 			addr = ":8080"
 		}
 	}
-	log.Println("[INFO] Server listening at " + addr)
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: corsHandler,
+	}
 
 	if https {
 		tlsConfig := &tls.Config{
@@ -297,21 +308,32 @@ func main() {
 			tlsConfig.ClientAuth = tls.NoClientCert
 		}
 
-		serverTLS := &http.Server{
-			Addr:      addr,
-			Handler:   corsHandler,
-			TLSConfig: tlsConfig,
-		}
-
-		// Start HTTPS server
-		if err := serverTLS.ListenAndServeTLS("", ""); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := http.ListenAndServe(addr, corsHandler); err != nil {
-			log.Fatal(err)
-		}
+		srv.TLSConfig = tlsConfig
 	}
+
+	// Start HTTPS server
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Error starting the server: %v", err)
+		}
+	}()
+
+	log.Println("[INFO] Server listening at " + addr)
+
+	// Block until we receive a signal
+	<-quit
+	log.Println("Shutting down server...")
+
+	// Create a context with a timeout for the shutdown process
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Attempt graceful shutdown
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exiting")
 }
 
 var readEnvs bool
