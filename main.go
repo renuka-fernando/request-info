@@ -250,6 +250,7 @@ func main() {
 	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
 	flag.BoolVar(&disableAccessLogs, "disable-access-logs", false, "Disable access logs")
+	flag.IntVar(&waitBeforeGracefulShutdownMs, "wait-before-graceful-shutdown-ms", 0, "Time to wait (ms) before graceful shutdown")
 	flag.Parse()
 
 	serviceName, _ = os.LookupEnv("NAME")
@@ -329,8 +330,14 @@ func main() {
 	log.Println("Shutting down server...")
 
 	// Create a context with a timeout for the shutdown process
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
+
+	// Wait before graceful shutdown
+	if waitBeforeGracefulShutdownMs > 0 {
+		log.Printf("Waiting %d ms before graceful shutdown...", waitBeforeGracefulShutdownMs)
+		time.Sleep(time.Duration(waitBeforeGracefulShutdownMs) * time.Millisecond)
+	}
 
 	// Attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
@@ -353,3 +360,4 @@ var clientCA string
 var delayMs int
 var statusCode int
 var disableAccessLogs bool
+var waitBeforeGracefulShutdownMs int

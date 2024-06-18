@@ -25,6 +25,7 @@ docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:lat
 - set `-mtls` argument to enable mTLS
 - set `-ca` argument to set the path to the CA file
 - set `-disable-access-logs` argument to disable access logs
+- ser `-wait-before-graceful-shutdown-ms` argument to set the time to wait before graceful shutdown in milliseconds
 
 Resource Usage
 ```yaml
