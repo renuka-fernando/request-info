@@ -18,9 +18,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
+
+var healthy int32
 
 type Response struct {
 	Name    string
@@ -205,8 +208,13 @@ func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(h
 }
 
 func healthzHandler(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprint(w, "OK")
+	if atomic.LoadInt32(&healthy) == 1 {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "OK")
+	} else {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		fmt.Fprintf(w, "Service Unavailable")
+	}
 }
 
 func empty(w http.ResponseWriter, req *http.Request) {
@@ -252,6 +260,9 @@ func main() {
 	flag.BoolVar(&disableAccessLogs, "disable-access-logs", false, "Disable access logs")
 	flag.IntVar(&waitBeforeGracefulShutdownMs, "wait-before-graceful-shutdown-ms", 0, "Time to wait (ms) before graceful shutdown")
 	flag.Parse()
+
+	// Initially, the server is healthy
+	atomic.StoreInt32(&healthy, 1)
 
 	serviceName, _ = os.LookupEnv("NAME")
 	if readEnvs {
@@ -328,6 +339,9 @@ func main() {
 	// Block until we receive a signal
 	<-quit
 	log.Println("Shutting down server...")
+
+	// Set the server as unhealthy
+	atomic.StoreInt32(&healthy, 0)
 
 	// Create a context with a timeout for the shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
