@@ -1,4 +1,5 @@
 # Request Info - Sample Backend Service
+
 Sample backend service which returns request details to the caller.
 
 Open API Specification: [request_info_openapi.yaml](request_info_openapi.yaml)
@@ -64,7 +65,7 @@ docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/r
 ```
 
 Sending request to backend service.
-```
+```sh
 curl http://localhost:8080/hello/world
 ```
 
@@ -73,7 +74,7 @@ curl http://localhost:8080/hello/world
 ```
 
 Remove running service
-```
+```sh
 docker rm -f service-A
 ```
 
@@ -85,7 +86,7 @@ docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/r
 ```
 
 Sending request to backend service.
-```
+```sh
 curl http://localhost:8080/hello/world
 ```
 
@@ -94,7 +95,7 @@ curl http://localhost:8080/hello/world
 ```
 
 Remove running service
-```
+```sh
 docker rm -f service-A
 ```
 
@@ -106,7 +107,7 @@ docker run -d -p 8080:8080 -e "NAME=Service A" --name service-A renukafernando/r
 ```
 
 Sending request to backend service.
-```
+```sh
 curl http://localhost:8080/hello/world
 ```
 
@@ -150,7 +151,7 @@ curl http://localhost:8080/hello/world
 ```
 
 Remove running service
-```
+```sh
 docker rm -f service-A
 ```
 
