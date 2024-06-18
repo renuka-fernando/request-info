@@ -66,7 +66,10 @@ func handleRequest(w http.ResponseWriter, req *http.Request) *string {
 		bodyString = string(bodyBytes)
 	}
 	os.WriteFile("last_response", bodyBytes, 0644)
-	log.Printf("[INFO] %q %q, Host: %q, Content Length: %d, %q, %q", req.Method, req.RequestURI, req.Host, req.ContentLength, req.UserAgent(), req.RemoteAddr)
+
+	if !disableAccessLogs {
+		log.Printf("[INFO] %q %q, Host: %q, Content Length: %d, %q, %q", req.Method, req.RequestURI, req.Host, req.ContentLength, req.UserAgent(), req.RemoteAddr)
+	}
 	if logHeaders {
 		log.Printf("[INFO] Headers: %v", req.Header)
 	}
@@ -246,6 +249,7 @@ func main() {
 	flag.StringVar(&clientCA, "ca", "ca.crt", "CA certificate file for client verification")
 	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
+	flag.BoolVar(&disableAccessLogs, "disable-access-logs", false, "Disable access logs")
 	flag.Parse()
 
 	serviceName, _ = os.LookupEnv("NAME")
@@ -348,3 +352,4 @@ var key string
 var clientCA string
 var delayMs int
 var statusCode int
+var disableAccessLogs bool

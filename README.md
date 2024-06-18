@@ -16,6 +16,15 @@ docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:lat
 - set `-pretty` argument if it is required to out prettified JSON
 - set `-delayMs` argument to delay response for a given time in milliseconds
 - set `-statusCode` argument to set status code of the response
+- set `-logH` argument to log request headers
+- set `-logB` argument to log request body
+- set `-addr` argument to set the address to listen to
+- set `-https` argument to enable HTTPS
+- set `-key` argument to set the path to the key file
+- set `-cert` argument to set the path to the cert file
+- set `-mtls` argument to enable mTLS
+- set `-ca` argument to set the path to the CA file
+- set `-disable-access-logs` argument to disable access logs
 
 Resource Usage
 ```yaml
