@@ -198,6 +198,11 @@ func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(h
 	}
 }
 
+func healthzHandler(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, _ = fmt.Fprint(w, "OK")
+}
+
 func empty(w http.ResponseWriter, req *http.Request) {
 	_ = handleRequest(w, req)
 	_, _ = fmt.Fprint(w, "")
@@ -252,6 +257,7 @@ func main() {
 	server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
 	server.HandleFunc("/empty", setResponseHandler(empty))
 	server.HandleFunc("/echo", setResponseHandler(echo))
+	server.HandleFunc("/healthz", healthzHandler)
 	server.HandleFunc("/", setResponseHandler(reqInfo))
 
 	// Enable CORS middleware
