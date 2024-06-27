@@ -207,6 +207,10 @@ func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(h
 	}
 }
 
+func setResponseBodyFromArgsHandler(w http.ResponseWriter, req *http.Request) {
+	_, _ = fmt.Fprintln(w, responseBody)
+}
+
 func healthzHandler(w http.ResponseWriter, req *http.Request) {
 	if atomic.LoadInt32(&healthy) == 1 {
 		w.WriteHeader(http.StatusOK)
@@ -257,6 +261,8 @@ func main() {
 	flag.StringVar(&clientCA, "ca", "ca.crt", "CA certificate file for client verification")
 	flag.IntVar(&delayMs, "delayMs", 0, "Time to wait (ms) before responding to request")
 	flag.IntVar(&statusCode, "status", 200, "HTTP status code to respond")
+	flag.BoolVar(&setResponseBody, "setResponseBody", false, "Response the body set via -responseBody flag")
+	flag.StringVar(&responseBody, "responseBody", "", "The response body to return")
 	flag.BoolVar(&disableAccessLogs, "disable-access-logs", false, "Disable access logs")
 	flag.IntVar(&waitBeforeGracefulShutdownMs, "wait-before-graceful-shutdown-ms", 0, "Time to wait (ms) before graceful shutdown")
 	flag.Parse()
@@ -276,12 +282,17 @@ func main() {
 	// Create a new HTTP server
 	server := http.NewServeMux()
 
-	// Set up a handler for the desired route
-	server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
-	server.HandleFunc("/empty", setResponseHandler(empty))
-	server.HandleFunc("/echo", setResponseHandler(echo))
 	server.HandleFunc("/healthz", healthzHandler)
-	server.HandleFunc("/", setResponseHandler(reqInfo))
+
+	if setResponseBody {
+		log.Println("[INFO] Responding the body set via -responseBody flag")
+		server.HandleFunc("/", setResponseBodyFromArgsHandler)
+	} else {
+		server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
+		server.HandleFunc("/empty", setResponseHandler(empty))
+		server.HandleFunc("/echo", setResponseHandler(echo))
+		server.HandleFunc("/", setResponseHandler(reqInfo))
+	}
 
 	// Enable CORS middleware
 	corsHandler := enableCORS(server)
@@ -373,5 +384,7 @@ var key string
 var clientCA string
 var delayMs int
 var statusCode int
+var setResponseBody bool
+var responseBody string
 var disableAccessLogs bool
 var waitBeforeGracefulShutdownMs int

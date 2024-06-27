@@ -24,8 +24,10 @@ docker run --rm -p 8080:8080 -e "NAME=Service A" renukafernando/request-info:lat
 - set `-cert` argument to set the path to the cert file
 - set `-mtls` argument to enable mTLS
 - set `-ca` argument to set the path to the CA file
+- set `-setResponseBody` argument to set the response body via the flag `-responseBody`
+- set `-responseBody` argument to set the response body
 - set `-disable-access-logs` argument to disable access logs
-- ser `-wait-before-graceful-shutdown-ms` argument to set the time to wait before graceful shutdown in milliseconds
+- set `-wait-before-graceful-shutdown-ms` argument to set the time to wait before graceful shutdown in milliseconds
 
 Resource Usage
 ```yaml
