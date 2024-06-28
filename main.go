@@ -285,7 +285,6 @@ func main() {
 	server.HandleFunc("/healthz", healthzHandler)
 
 	if setResponseBody {
-		log.Println("[INFO] Responding the body set via -responseBody flag")
 		server.HandleFunc("/", setResponseBodyFromArgsHandler)
 	} else {
 		server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
@@ -298,9 +297,14 @@ func main() {
 	corsHandler := enableCORS(server)
 
 	log.Println("[INFO] Starting server...")
-	log.Println("[INFO] Invoke resource '/' to get request info in response")
-	log.Println("[INFO] Invoke resource '/echo' to echo response")
-	log.Println("[INFO] Invoke '/empty' to return empty response")
+
+	if setResponseBody {
+		log.Println("[INFO] Responding the body set via -responseBody flag")
+	} else {
+		log.Println("[INFO] Invoke resource '/' to get request info in response")
+		log.Println("[INFO] Invoke resource '/echo' to echo response")
+		log.Println("[INFO] Invoke '/empty' to return empty response")
+	}
 
 	if addr == "" {
 		if https {
@@ -316,18 +320,28 @@ func main() {
 	}
 
 	if https {
+		log.Println("[INFO] Starting HTTPS server...")
 		tlsConfig := &tls.Config{
 			MinVersion:   tls.VersionTLS12,
 			Certificates: make([]tls.Certificate, 1),
 		}
-		tlsConfig.Certificates[0], _ = tls.LoadX509KeyPair(cert, key)
-
-		// Load CA certificate for client verification
-		caCert, _ := os.ReadFile(clientCA)
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
+		var err error
+		tlsConfig.Certificates[0], err = tls.LoadX509KeyPair(cert, key)
+		if err != nil {
+			log.Fatalf("[ERROR] Error loading TLS certificate: %v", err)
+		}
 
 		if mtls {
+			log.Println("[INFO] mTLS enabled")
+			// Load CA certificate for client verification
+			caCert, err := os.ReadFile(clientCA)
+			if err != nil {
+				log.Fatalf("Error loading CA certificate: %v", err)
+			}
+
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
 			tlsConfig.ClientCAs = caCertPool
 			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
 		} else {
@@ -338,10 +352,14 @@ func main() {
 		srv.TLSConfig = tlsConfig
 	}
 
-	// Start HTTPS server
+	// Start HTTP server
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Error starting the server: %v", err)
+		if https {
+			if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("Error starting the HTTPS server: %v", err)
+			}
+		} else if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Error starting the HTTP server: %v", err)
 		}
 	}()
 

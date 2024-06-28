@@ -167,7 +167,7 @@ Remove running service
 docker rm -f service-A
 ```
 
-### 1.4. HTTP Service
+### 1.4. HTTPS Service
 
 Generate Certs
 
@@ -177,7 +177,7 @@ Generate Certs
 
 Running backend service.
 
-#### 1.5.1. Using Docker Image
+#### 1.5.1. HTTPS - Using Docker Image
 
 ```sh
 docker run --rm -p 8443:8443 -e "NAME=Service A" -v ./certs:/certs  renukafernando/request-info:latest -pretty -logH -logB -addr :8443 -https -key /certs/server.key -cert /certs/server.crt
@@ -193,7 +193,7 @@ curl https://localhost:8443/foo \
     -v
 ```
 
-#### 1.5.2. Using Go Source Code
+#### 1.5.2. HTTPS - Using Go Source Code
 
 ```sh
 go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt
@@ -216,7 +216,7 @@ Generate Certs
 
 Running backend service.
 
-#### 1.5.1. Using Docker Image
+#### 1.5.1. mTLS - Using Docker Image
 
 ```sh
 docker run --rm -p 8443:8443 -e "NAME=Service A" -v ./certs:/certs  renukafernando/request-info:latest -pretty -logH -logB -addr :8443 -https -key /certs/server.key -cert /certs/server.crt -mtls -ca /certs/client.crt
@@ -232,7 +232,7 @@ curl https://localhost:8443/foo \
     -v
 ```
 
-#### 1.5.2. Using Go Source Code
+#### 1.5.2. mTLS - Using Go Source Code
 
 ```sh
 go run main.go -pretty -logH -logB -addr :8443 -https -key ./certs/server.key -cert ./certs/server.crt -mtls -ca ./certs/client.crt
