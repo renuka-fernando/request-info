@@ -5,7 +5,7 @@ mkdir -p certs
 cd certs
 
 CN="localhost"
-SAN="DNS:localhost, DNS:host.docker.internal, DNS:req-info-mtls-1454161406"
+SAN="DNS:localhost, DNS:host.docker.internal, DNS:req-info-mtls-1454161406, IP:1.1.1.1"
 
 generate_certs() {
     FILE_NAME="$1"

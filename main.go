@@ -315,8 +315,11 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    addr,
-		Handler: corsHandler,
+		Addr:         addr,
+		Handler:      corsHandler,
+		IdleTimeout:  180 * time.Second,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
 	}
 
 	if https {
