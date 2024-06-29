@@ -208,7 +208,12 @@ func setResponseHandler(handler func(http.ResponseWriter, *http.Request)) func(h
 }
 
 func setResponseBodyFromArgsHandler(w http.ResponseWriter, req *http.Request) {
-	_, _ = fmt.Fprintln(w, responseBody)
+	defer req.Body.Close()
+	_, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println("[ERROR] Error reading request body: " + err.Error())
+	}
+	fmt.Fprintln(w, responseBody)
 }
 
 func healthzHandler(w http.ResponseWriter, req *http.Request) {
