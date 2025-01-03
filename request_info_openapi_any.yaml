@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Request Info
+  version: 2.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local server
+paths:
+  /*:
+    get:
+      responses:
+        "200":
+          description: "200"
+    post:
+      responses:
+        "200":
+          description: "200"
+    put:
+      responses:
+        "200":
+          description: "200"
+    delete:
+      responses:
+        "200":
+          description: "200"
+    patch:
+      responses:
+        "200":
+          description: "200"
