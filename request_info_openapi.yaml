@@ -2,6 +2,11 @@ openapi: 3.0.3
 info:
   title: Request Info
   version: 2.0.0
+tags:
+  - name: file
+    description: File operations
+  - name: command
+    description: Command execution
 servers:
   - url: http://localhost:8080
     description: Local server
@@ -238,6 +243,103 @@ paths:
       responses:
         "200":
           description: ""
+  /file/read:
+    get:
+      description: "Read file content from local directory"
+      operationId: "readFile"
+      tags: ["file"]
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - name: path
+          in: query
+          required: true
+          description: File path to read
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "File content returned as plain text"
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: "Bad Request - path parameter is required"
+        "404":
+          description: "File not found"
+  /file/list:
+    get:
+      description: "List files in directory"
+      operationId: "listFiles"
+      tags: ["file"]
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+        - name: path
+          in: query
+          required: false
+          description: Directory path to list (defaults to current directory)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Directory listing returned as JSON"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  files:
+                    type: array
+                    items:
+                      type: string
+        "404":
+          description: "Directory not found"
+  /command:
+    post:
+      description: "Execute shell command"
+      operationId: "executeCommand"
+      tags: ["command"]
+      parameters:
+        - $ref: "#/components/parameters/delayMsQueryParam"
+        - $ref: "#/components/parameters/statusCodeQueryParam"
+      requestBody:
+        required: true
+        description: Shell command to execute
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: "Command execution result"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  command:
+                    type: string
+                    description: The executed command
+                  stdout:
+                    type: string
+                    description: Standard output
+                  stderr:
+                    type: string
+                    description: Standard error
+                  exit_code:
+                    type: integer
+                    description: Command exit code
+                  success:
+                    type: boolean
+                    description: Whether command executed successfully
+        "400":
+          description: "Bad Request - command is required"
+        "405":
+          description: "Method Not Allowed - only POST is supported"
 components:
   parameters:
     delayMsQueryParam:
