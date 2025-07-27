@@ -74,12 +74,3 @@ endpoints:
     # This is only applicable to REST or WS endpoint types.
     # The path should be relative to the docker context.
     schemaFilePath: request_info_openapi_any.yaml
-
-# +optional Outgoing connection details for the component.
-dependencies:
-  # +optional Defines the connection references from the Internal Marketplace.
-  connectionReferences:
-    # +required Name of the connection.
-    - name: hr-connection
-      # +required service identifer of the dependent component.
-      resourceRef: service:/HRProject/UserComponent/v1/ad088/PUBLIC
