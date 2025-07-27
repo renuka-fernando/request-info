@@ -74,3 +74,8 @@ endpoints:
     # This is only applicable to REST or WS endpoint types.
     # The path should be relative to the docker context.
     schemaFilePath: request_info_openapi_any.yaml
+
+dependencies:
+    connectionReferences:
+    - name: Open AI
+      resourceRef: thirdparty:Open AI - Org/v1
