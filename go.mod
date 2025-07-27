@@ -1,3 +1,3 @@
 module github.com/renuka-fernando/request-info
 
-go 1.15
+go 1.24

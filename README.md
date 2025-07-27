@@ -46,7 +46,7 @@ Override statusCode and responseTime with the following query parameters.
 
 Get request info:
 ```sh
-curl 'http://localhost:8080/hello/world?delayMs=2000:5000&statusCode=201&pretty=true' -i
+curl 'http://localhost:8080/hello/world?delayMs=2000-5000&statusCode=201&pretty=true' -i
 ```
 
 Empty response:
@@ -188,8 +188,6 @@ Test the service
 ```sh
 curl https://localhost:8443/foo \
     --cacert certs/server.crt \
-    --key certs/client.key \
-    --cert certs/client.crt \
     -v
 ```
 

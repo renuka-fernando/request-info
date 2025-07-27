@@ -254,10 +254,10 @@ func enableCORS(handler http.Handler) http.Handler {
 }
 
 func main() {
-	flag.BoolVar(&readEnvs, "read-envs", false, "Read environment variables")
+	flag.BoolVar(&readEnvs, "read-envs", true, "Read environment variables")
 	flag.BoolVar(&pretty, "pretty", false, "Prettify output JSON")
 	flag.BoolVar(&logHeaders, "logH", false, "Log Headers")
-	flag.BoolVar(&logBody, "logB", false, "Log Headers")
+	flag.BoolVar(&logBody, "logB", false, "Log Body")
 	flag.BoolVar(&https, "https", false, "HTTPS server") // Set to true for mTLS
 	flag.BoolVar(&mtls, "mtls", false, "Enable mTLS")    // New flag to enable/disable mTLS
 	flag.StringVar(&addr, "addr", "", "Address to bind the server")
@@ -389,6 +389,7 @@ func main() {
 		log.Printf("Waiting %d ms before graceful shutdown...", waitBeforeGracefulShutdownMs)
 		time.Sleep(time.Duration(waitBeforeGracefulShutdownMs) * time.Millisecond)
 	}
+	log.Println("Attempting graceful shutdown...")
 
 	// Attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
