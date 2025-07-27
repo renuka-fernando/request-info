@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -14,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strconv"
 	"strings"
@@ -236,6 +238,138 @@ func echo(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintln(w, *bodyString)
 }
 
+func readFile(w http.ResponseWriter, req *http.Request) {
+	_ = handleRequest(w, req)
+
+	// Get the path parameter from the query string
+	path := req.URL.Query().Get("path")
+	if path == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, `{"error": "path parameter is required"}`)
+		return
+	}
+
+	// Read the file
+	content, err := os.ReadFile(path)
+	if err != nil {
+		log.Printf("[ERROR] Error reading file %s: %v", path, err)
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = fmt.Fprintf(w, `{"error": "Failed to read file: %v"}`, err)
+		return
+	}
+
+	// Return the file content
+	_, _ = fmt.Fprint(w, string(content))
+}
+
+func listFiles(w http.ResponseWriter, req *http.Request) {
+	_ = handleRequest(w, req)
+
+	// Get the path parameter from the query string
+	path := req.URL.Query().Get("path")
+	if path == "" {
+		path = "." // Default to current directory if no path provided
+	}
+
+	// Read the directory
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		log.Printf("[ERROR] Error reading directory %s: %v", path, err)
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = fmt.Fprintf(w, `{"error": "Failed to read directory: %v"}`, err)
+		return
+	}
+
+	// Build the response
+	var files []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() {
+			name += "/"
+		}
+		files = append(files, name)
+	}
+
+	// Return as JSON
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"path":  path,
+		"files": files,
+	}
+
+	jsonBytes, err := json.MarshalIndent(response, "", "    ")
+	if err != nil {
+		log.Printf("[ERROR] Error marshaling JSON: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintf(w, `{"error": "Failed to marshal JSON: %v"}`, err)
+		return
+	}
+
+	_, _ = fmt.Fprint(w, string(jsonBytes))
+}
+
+func executeCommand(w http.ResponseWriter, req *http.Request) {
+	bodyString := handleRequest(w, req)
+
+	// Only allow POST method
+	if req.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_, _ = fmt.Fprintln(w, `{"error": "Only POST method is allowed"}`)
+		return
+	}
+
+	// Get the command from request body
+	command := strings.TrimSpace(*bodyString)
+	if command == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, `{"error": "Command is required in request body"}`)
+		return
+	}
+
+	log.Printf("[INFO] Executing command: %s", command)
+
+	// Execute the command using shell
+	cmd := exec.Command("sh", "-c", command)
+
+	// Capture both stdout and stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	// Execute the command
+	err := cmd.Run()
+
+	// Get the exit code
+	exitCode := 0
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			exitCode = exitError.ExitCode()
+		} else {
+			exitCode = 1
+		}
+	}
+
+	// Prepare response
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"command":   command,
+		"stdout":    stdout.String(),
+		"stderr":    stderr.String(),
+		"exit_code": exitCode,
+		"success":   exitCode == 0,
+	}
+
+	jsonBytes, jsonErr := json.MarshalIndent(response, "", "    ")
+	if jsonErr != nil {
+		log.Printf("[ERROR] Error marshaling JSON: %v", jsonErr)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintf(w, `{"error": "Failed to marshal JSON: %v"}`, jsonErr)
+		return
+	}
+
+	_, _ = fmt.Fprint(w, string(jsonBytes))
+}
+
 func enableCORS(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set CORS headers
@@ -295,6 +429,9 @@ func main() {
 		server.HandleFunc("/req-info/response", reqInfoSetPayloadHandler)
 		server.HandleFunc("/empty", setResponseHandler(empty))
 		server.HandleFunc("/echo", setResponseHandler(echo))
+		server.HandleFunc("/file/read", setResponseHandler(readFile))
+		server.HandleFunc("/file/list", setResponseHandler(listFiles))
+		server.HandleFunc("/command", executeCommand)
 		server.HandleFunc("/", setResponseHandler(reqInfo))
 	}
 
@@ -309,6 +446,9 @@ func main() {
 		log.Println("[INFO] Invoke resource '/' to get request info in response")
 		log.Println("[INFO] Invoke resource '/echo' to echo response")
 		log.Println("[INFO] Invoke '/empty' to return empty response")
+		log.Println("[INFO] Invoke '/file/read?path=<path>' to read a file from local directory")
+		log.Println("[INFO] Invoke '/file/list?path=<path>' to list files in directory")
+		log.Println("[INFO] POST to '/command' with command in body to execute shell commands")
 	}
 
 	if addr == "" {

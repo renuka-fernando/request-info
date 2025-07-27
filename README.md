@@ -59,6 +59,26 @@ Echo response:
 curl 'http://localhost:8080/echo?statusCode=403' -d 'hello world!' -i
 ```
 
+Read file from local directory:
+```sh
+curl 'http://localhost:8080/file/read?path=README.md' -i
+curl 'http://localhost:8080/file/read?path=main.go&statusCode=200&delayMs=1000' -i
+```
+
+List files in directory:
+```sh
+curl 'http://localhost:8080/file/list' -i
+curl 'http://localhost:8080/file/list?path=.&statusCode=200&delayMs=500' -i
+```
+
+Execute shell command:
+```sh
+curl 'http://localhost:8080/command' -X POST -d 'ls -alh .' -i
+curl 'http://localhost:8080/command' -X POST -d 'pwd' -i
+curl 'http://localhost:8080/command' -X POST -d 'echo "Hello World"' -i
+curl 'http://localhost:8080/command?statusCode=200&delayMs=1000' -X POST -d 'date' -i
+```
+
 Set response data:
 
 ```sh
