@@ -13,11 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22'
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -30,12 +25,6 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build AMD64 Binary
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o request-info-amd64 .
-    
-    - name: Build ARM64 Binary
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o request-info-arm64 .
-    
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
